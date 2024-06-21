@@ -7,7 +7,9 @@ NekoNode API is a RESTful API that provides anime data to the NekoNode CLI tool.
 
 - [Node.js](https://nodejs.org/en/) I recommend using the latest LTS version.
 
-  
+## Documentation?
+
+There is no documentation for the API as it is only used by the NekoNode CLI tool. If you want to use the API, you can check the source code.
 
 ## Found a Bug?
 
