@@ -49,4 +49,38 @@ router.get('/watch/:episode', async (req, res) => {
     }
 });
 
+router.get('/info/:anime', async (req, res) => {
+    const anime = req.params.anime;
+
+    try {
+        const animeResponse = await axios.get(`${baseUrl}category/${anime}`);
+        const $ = load(animeResponse.data);
+        let animeInfo = {};
+
+        // Extracting title
+        const title = $('.anime_info_body_bg h1').text().trim();
+
+        // Extracting description
+        const description = $('.description').text().trim();
+
+        // Extracting status
+        const status = $('span:contains("Status:")').parent().find('a').text().trim();
+
+        // Extracting genres
+        const genres = [];
+        $('span:contains("Genre:")').parent().find('a').each((_, element) => {
+            genres.push($(element).text().trim());
+        });
+
+        // Extracting release year
+        const released = $('span:contains("Released:")').parent().text().replace('Released:', '').trim();
+
+        animeInfo = { title, description, status, genres, released };
+        res.json(animeInfo);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve anime info' });
+    }
+});
+
 export default router;
