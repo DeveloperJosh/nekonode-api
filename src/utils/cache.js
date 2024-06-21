@@ -41,3 +41,10 @@ export async function getCache(key) {
         return null;
     }
 }
+
+function clearCache() {
+    cache.flushAll();
+    console.log('Cache cleared successfully');
+}
+
+setInterval(clearCache, 3600000); 

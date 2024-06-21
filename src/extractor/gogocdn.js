@@ -2,7 +2,7 @@ import axios from 'axios';
 import { load } from 'cheerio';
 import CryptoJS from 'crypto-js';
 import dotenv from 'dotenv';
-import { getCache, setCache } from './utils/cache.js';
+import { getCache, setCache } from '../utils/cache.js';
 dotenv.config();
 
 const baseUrl = process.env.BASE_URL;
