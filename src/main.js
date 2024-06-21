@@ -1,32 +1,42 @@
 import express from 'express';
 import router from './routes/gogo.js';
 import dotenv from 'dotenv';
-import onFinished from 'on-finished';
+import pino from 'pino';
+import pinoHttp from 'pino-http';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Create a Pino logger
+const logger = pino({
+    level: 'info',
+    base: { pid: process.pid },
+    timestamp: pino.stdTimeFunctions.epochTime
+});
+
+// Use Pino HTTP middleware to log requests and responses
+app.use(pinoHttp({
+    logger: logger,
+    serializers: {
+        req(req) {
+            return {
+                method: req.method,
+                url: req.url,
+                hostname: req.hostname,
+            };
+        },
+        res(res) {
+            return {
+                statusCode: res.statusCode
+            };
+        }
+    }
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Middleware to log requests and responses
-app.use((req, res, next) => {
-    // Log request details
-    console.log(`[${new Date().toLocaleString()}] ${req.method} ${req.originalUrl}`);
-
-    // Hook into the response lifecycle
-    onFinished(res, (err, res) => {
-        if (err) {
-            console.error('Error during response:', err);
-        } else {
-            console.log(`[${new Date().toLocaleString()}] ${res.statusCode} ${res.statusMessage}`);
-        }
-    });
-
-    next();
-});
 
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to NekoNode API' });
