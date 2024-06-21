@@ -3,6 +3,10 @@
 
 NekoNode API is a RESTful API that provides anime data to the NekoNode CLI tool. It is built using Node.js and Express.js.
 
+## NekoNode CLI
+
+NekoNode CLI is a command-line tool that allows you to search for anime and manga data using the NekoNode API. You can find the NekoNode CLI repository [here](https://github.com/DeveloperJosh/anime-cli).
+
 ## Requirements
 
 - [Node.js](https://nodejs.org/en/) I recommend using the latest LTS version.
