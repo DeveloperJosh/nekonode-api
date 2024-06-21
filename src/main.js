@@ -11,8 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-    // send 200 status code
-    req.status(200).json({ message: 'Welcome to the NekoNode API' });
+    res.json({ message: 'Welcome to NekoNode API' });
 });
 
 app.use('/api', router);
