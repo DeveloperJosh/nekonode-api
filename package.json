@@ -1,0 +1,37 @@
+{
+  "name": "nekonode-api",
+  "version": "1.0.0",
+  "description": "This is the anime api for the cli tool NekoNode",
+  "main": "src/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "nodemon src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/DeveloperJosh/nekonode-api"
+  },
+  "keywords": [
+    "api"
+  ],
+  "author": "DeveloperJosh",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/register": "^7.24.6",
+    "axios": "^1.7.2",
+    "chai-http": "^5.0.0",
+    "cheerio": "^1.0.0-rc.12",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "nock": "^13.5.4",
+    "node-cache": "^5.1.2",
+    "redis": "^4.6.14"
+  },
+  "devDependencies": {
+    "chai": "^5.1.1",
+    "mocha": "^10.4.0",
+    "supertest": "^7.0.0"
+  }
+}
