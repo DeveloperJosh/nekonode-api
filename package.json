@@ -27,6 +27,7 @@
     "express": "^4.19.2",
     "nock": "^13.5.4",
     "node-cache": "^5.1.2",
+    "on-finished": "^2.4.1",
     "redis": "^4.6.14"
   },
   "devDependencies": {
