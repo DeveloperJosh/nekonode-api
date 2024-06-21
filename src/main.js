@@ -1,5 +1,6 @@
 import express from 'express';
 import router from './routes/gogo.js';
+import rateLimit from './utils/ratelimit.js';
 import dotenv from 'dotenv';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
@@ -34,6 +35,9 @@ app.use(pinoHttp({
         }
     }
 }));
+
+// Rate limit requests
+app.use(rateLimit);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
