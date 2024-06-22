@@ -49,6 +49,7 @@ router.get('/watch/:episode', async (req, res) => {
     }
 });
 
+// how to use this endpoint: /api/info/remonster
 router.get('/info/:anime', async (req, res) => {
     const anime = req.params.anime;
 

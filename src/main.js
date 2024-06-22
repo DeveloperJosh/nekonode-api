@@ -2,6 +2,7 @@ import express from 'express';
 import router from './routes/gogo.js';
 import rateLimit from './utils/ratelimit.js';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 
@@ -9,11 +10,30 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const host = process.env.HOST || 'localhost';
+
+const allowedOrigins = [
+    'http://localhost:3000',  // HTTP origin
+    `https://${host}`,
+  ];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+            console.log('Origin:', "Allowed");
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    }
+};
+
+app.use(cors(corsOptions));
 
 // Create a Pino logger
 const logger = pino({
     level: 'info',
-    base: { pid: process.pid },
+    base: { pid: process.pid, hostname: host, },
     timestamp: pino.stdTimeFunctions.epochTime
 });
 
