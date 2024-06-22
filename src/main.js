@@ -33,7 +33,7 @@ app.use(cors(corsOptions));
 // Create a Pino logger
 const logger = pino({
     level: 'info',
-    base: { pid: process.pid, hostname: host, },
+    base: { pid: process.pid },
     timestamp: pino.stdTimeFunctions.epochTime
 });
 
@@ -45,7 +45,6 @@ app.use(pinoHttp({
             return {
                 method: req.method,
                 url: req.url,
-                hostname: req.hostname,
             };
         },
         res(res) {
