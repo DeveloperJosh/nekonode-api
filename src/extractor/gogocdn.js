@@ -36,7 +36,7 @@ async function getIframeSrc(episode) {
         }
 
         // Construct the URL and fetch the page
-        const url = `${baseUrl}${episode}`;
+        const url = `${baseUrl}/${episode}`;
         //console.log('Fetching episode URL:', url);
         const { data: html } = await axios.get(url);
         

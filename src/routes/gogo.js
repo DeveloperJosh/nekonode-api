@@ -9,12 +9,12 @@ dotenv.config();
 const router = Router();
 const baseUrl = process.env.BASE_URL;
 
-router.get('/:animeName', async (req, res) => {
+router.get('/search/:animeName', async (req, res) => {
     const animeName = req.params.animeName;
     const encodedAnimeName = encodeURIComponent(animeName);
 
     try {
-        const searchResponse = await axios.get(`${baseUrl}search.html?keyword=${encodedAnimeName}`);
+        const searchResponse = await axios.get(`${baseUrl}/search.html?keyword=${encodedAnimeName}`);
         const $ = load(searchResponse.data);
         let animeMatches = [];
 
@@ -23,7 +23,7 @@ router.get('/:animeName', async (req, res) => {
             const name = animeElement.find('a').attr('title').trim();
             const url = animeElement.find('a').attr('href');
 
-            animeMatches.push({ name, url: `${baseUrl}${url}` });
+            animeMatches.push({ name, url: `${baseUrl}/${url}` });
         });
 
         if (animeMatches.length === 0) {
@@ -54,7 +54,7 @@ router.get('/info/:anime', async (req, res) => {
     const anime = req.params.anime;
 
     try {
-        const animeResponse = await axios.get(`${baseUrl}category/${anime}`);
+        const animeResponse = await axios.get(`${baseUrl}/category/${anime}`);
         const $ = load(animeResponse.data);
         let animeInfo = {};
 
