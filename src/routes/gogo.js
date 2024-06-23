@@ -111,7 +111,7 @@ router.get('/watch/:episode', async (req, res) => {
 
 /**
  * @swagger
- * /api/info/{anime}:
+ * /api/info/{animeName}:
  *   get:
  *     summary: Retrieves detailed information about an anime.
  *     parameters:
@@ -127,8 +127,10 @@ router.get('/watch/:episode', async (req, res) => {
  *       500:
  *         description: Failed to retrieve anime info.
  */
-router.get('/info/:anime', async (req, res) => {
-    const anime = req.params.anime;
+router.get('/info/:animeName', async (req, res) => {
+    let anime = req.params.animeName;
+    // make the animeName URL friendly so if they search for "One Piece" it will be "one-piece"
+    anime = anime.replace(/\s+/g, '-').toLowerCase();
 
     try {
         const animeResponse = await axios.get(`${baseUrl}/category/${anime}`);
