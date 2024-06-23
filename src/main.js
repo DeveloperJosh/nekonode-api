@@ -69,7 +69,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to NekoNode API' });
+    res.json({ message: 'Welcome to NekoNode API', docs: 'https://api.nekonode.net/docs' });
 });
 
 app.use('/api', router);
@@ -85,7 +85,8 @@ const options = {
         },
         servers: [
             {
-                url: `https://api.nekonode.net`, // Updated to your production domain
+                url: `https://api.nekonode.net`,
+                url: `http://localhost:${port}`, // local development domain
             },
         ],
     },
