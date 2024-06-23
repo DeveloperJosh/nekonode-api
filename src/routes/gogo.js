@@ -23,7 +23,7 @@ router.get('/search/:animeName', async (req, res) => {
             const name = animeElement.find('a').attr('title').trim();
             const url = animeElement.find('a').attr('href');
 
-            animeMatches.push({ name, url: `${baseUrl}/${url}` });
+            animeMatches.push({ name, url: `${baseUrl}${url}` });
         });
 
         if (animeMatches.length === 0) {
