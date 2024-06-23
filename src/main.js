@@ -10,6 +10,7 @@ import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import helmet from 'helmet';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(helmet());
 
 const logger = pino({
     level: 'info',
