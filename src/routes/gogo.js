@@ -23,6 +23,10 @@ const baseUrl = process.env.BASE_URL;
  *           type: string
  *           description: The name of the anime.
  *           example: "Naruto"
+ *         lang:
+ *          type: string
+ *          description: The language of the anime.
+ *          example: "Sub"
  *         url:
  *           type: string
  *           description: The URL of the anime.
@@ -91,7 +95,7 @@ const baseUrl = process.env.BASE_URL;
  *               items:
  *                 $ref: '#/components/schemas/AnimeMatch'
  *       404:
- *         description: No results found.
+ *         description: No results found. (You should know some anime names are in japanese)
  *       500:
  *         description: Failed to retrieve anime.
  */
@@ -107,9 +111,11 @@ router.get('/search/:animeName', async (req, res) => {
         $('.items .img').each((_, element) => {
             const animeElement = $(element);
             const name = animeElement.find('a').attr('title').trim();
+            // name has (dub in it) so we can use this to determine if it is subbed or dubbed
+            const is_dub = name.includes('(Dub)') ? 'Dub' : 'Sub';
             const url = animeElement.find('a').attr('href');
 
-            let animeMatch = { ...AnimeMatch, name, url: `${baseUrl}${url}` };
+            let animeMatch = { ...AnimeMatch, name, lang: `${is_dub}`, url: `${baseUrl}${url}` };
             animeMatches.push(animeMatch);
         });
 
@@ -122,7 +128,6 @@ router.get('/search/:animeName', async (req, res) => {
         res.status(500).json({ error: 'Failed to retrieve anime' });
     }
 });
-
 /**
  * @swagger
  * /api/watch/{episode}:
