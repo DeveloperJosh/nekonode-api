@@ -10,6 +10,7 @@ import swaggerUi from 'swagger-ui-express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import helmet from 'helmet';
 
 dotenv.config();
 
@@ -38,6 +39,26 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+app.use(helmet({
+    // Disable default settings
+    frameguard: { action: 'deny' }, // Prevent clickjacking
+    xssFilter: true, // Enable XSS filter
+    noSniff: true, // Prevent MIME type sniffing
+    ieNoOpen: true, // Set X-Download-Options for IE8+
+    hidePoweredBy: true, // Hide X-Powered-By
+    hsts: {
+        maxAge: 31536000, // Max-age for Strict-Transport-Security header
+        includeSubDomains: true, // Apply to subdomains
+        preload: true // Allow domain to be preloaded
+    },
+    // Exclude or customize unnecessary headers
+    dnsPrefetchControl: false, // Disable X-DNS-Prefetch-Control
+    expectCt: false, // Disable Expect-CT
+    referrerPolicy: { policy: 'same-origin' }, // Set Referrer-Policy
+    permittedCrossDomainPolicies: false, // Disable cross-domain policies
+    contentSecurityPolicy: false // Disable Content-Security-Policy
+}));
 
 const logger = pino({
     level: 'info',
