@@ -97,7 +97,7 @@ const specs = swaggerJsdoc(options);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(port, () => {
-    console.log(`Server running on http://${host}:${port}`);
+    console.log(`Server running on ${host}`);
 });
 
 process.on('SIGINT', () => {
