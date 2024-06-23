@@ -11,24 +11,6 @@ const baseUrl = process.env.BASE_URL;
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     AnimeMatch:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           description: The name of the anime.
- *         url:
- *           type: string
- *           description: The URL to the anime page.
- *       required:
- *         - name
- *         - url
- */
-
-/**
- * @swagger
  * /api/search/{animeName}:
  *   get:
  *     summary: Searches for an anime by name.
