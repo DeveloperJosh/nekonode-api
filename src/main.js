@@ -99,3 +99,8 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.listen(port, () => {
     console.log(`Server running on http://${host}:${port}`);
 });
+
+process.on('SIGINT', () => {
+    console.log('Shutting down server');
+    process.exit(0);
+});
