@@ -13,7 +13,7 @@ NekoNode CLI is a command-line tool that allows you to search for anime using th
 
 ## Documentation?
 
-There is no documentation for the API as it is only used by the NekoNode CLI tool. If you want to use the API, you can check the source code.
+For the API documentation, please visit the [NekoNode API Documentation](https://api.nekonode.net/docs/).
 
 ## Found a Bug?
 
