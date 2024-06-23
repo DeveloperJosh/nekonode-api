@@ -86,7 +86,7 @@ const options = {
         servers: [
             {
                 url: `https://api.nekonode.net`,
-                url: `http://localhost:${port}`, // local development domain
+                //url: `http://localhost:${port}`, // local development domain
             },
         ],
     },
