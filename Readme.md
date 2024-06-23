@@ -5,7 +5,7 @@ NekoNode API is a RESTful API that provides anime data to the NekoNode CLI tool.
 
 ## NekoNode CLI
 
-NekoNode CLI is a command-line tool that allows you to search for anime using the NekoNode API. You can find the NekoNode CLI repository [here](https://github.com/DeveloperJosh/anime-cli).
+[NekoNode CLI]((https://github.com/DeveloperJosh/anime-cli)) is a command-line tool that allows you to search for anime using the NekoNode API.
 
 ## Requirements
 
