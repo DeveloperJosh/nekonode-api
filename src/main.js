@@ -17,14 +17,13 @@ const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || 'localhost';
 
-// Get __dirname equivalent in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const allowedOrigins = [
     'http://localhost:3000',
     `https://${host}`,
-    `https://api.nekonode.net`, // Add your domain to allowed origins
+    `https://api.nekonode.net`,
 ];
 
 const corsOptions = {
