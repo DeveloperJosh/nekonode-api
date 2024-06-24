@@ -1,4 +1,4 @@
-import VideoExtractor from './uitls/VideoExtractor.js';
+import VideoExtractor from '../uitls/VideoExtractor.js';
 
 class StreamWish extends VideoExtractor {
   constructor() {
