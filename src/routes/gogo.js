@@ -235,4 +235,45 @@ router.get('/info/:animeName', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/latest:
+ *  get:
+ *   summary: Retrieves the latest episodes.
+ *  responses:
+ *   200:
+ *   description: The latest episodes.
+ *  content:
+ *  application/json:
+ *  schema:
+ *  type: array
+ * items:
+ * $ref: '#/components/schemas/AnimeMatch'
+ * 500:
+ * description: Failed to retrieve latest episodes.
+ */
+router.get('/latest', (req, res) => {
+    // get last_episodes loaddub
+
+    axios.get(`${baseUrl}/`).then((response) => {
+        const $ = load(response.data);
+        let latestEpisodes = [];
+
+        $('.items .img').each((_, element) => {
+            const animeElement = $(element);
+            const name = animeElement.find('a').attr('title').trim();
+            const image = animeElement.find('img').attr('src');
+            const url = animeElement.find('a').attr('href');
+            const is_dub = name.includes('(Dub)') ? 'Dub' : 'Sub';
+
+            let animeMatch = { ...AnimeMatch, name, lang: `${is_dub}`, url: `${baseUrl}${url}` };
+            latestEpisodes.push(animeMatch);
+        });
+
+        res.json(latestEpisodes);
+    }).catch((error) => {
+        res.status(500).json({ error: 'Failed to retrieve latest episodes' });
+    });
+});
+
 export default router;
