@@ -2,7 +2,8 @@ import { Router } from 'express';
 import axios from 'axios';
 import { load } from 'cheerio';
 import dotenv from 'dotenv';
-import getEpisodeSources from '../extractor/gogocdn.js';
+///import getEpisodeSources from '../extractor/gogocdn.js';
+import GogoCDN from '../extractor/gogocdn.js';
 import EpisodeSources from '../schemas/EpisodeSources.js';
 import AnimeMatch from '../schemas/AnimeMatch.js';
 import AnimeInfo from '../schemas/AnimeInfo.js';
@@ -12,6 +13,7 @@ dotenv.config();
 
 const router = Router();
 const baseUrl = process.env.BASE_URL;
+const gogoCDN = new GogoCDN();
 
 /**
  * @swagger
@@ -158,7 +160,7 @@ router.get('/watch/:episode', async (req, res) => {
     const episode = req.params.episode;
 
     try {
-        const episodeSourceData = await getEpisodeSources(episode);
+        const episodeSourceData = await gogoCDN.getEpisodeSources(episode);
         let episodeSources = [];
 
         episodeSourceData.forEach(sourceData => {

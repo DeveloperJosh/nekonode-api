@@ -48,23 +48,6 @@ const logger = pino({
     timestamp: pino.stdTimeFunctions.epochTime
 });
 
-app.use(pinoHttp({
-    logger: logger,
-    serializers: {
-        req(req) {
-            return {
-                method: req.method,
-                url: req.url,
-            };
-        },
-        res(res) {
-            return {
-                statusCode: res.statusCode
-            };
-        }
-    }
-}));
-
 // Rate limit requests
 app.use(rateLimit);
 
@@ -102,9 +85,4 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(port, () => {
     console.log(`Server running on ${host}:${port}`);
-});
-
-process.on('SIGINT', () => {
-    console.log('Shutting down server');
-    process.exit(0);
 });
