@@ -6,6 +6,7 @@ import getEpisodeSources from '../extractor/gogocdn.js';
 import EpisodeSources from '../schemas/EpisodeSources.js';
 import AnimeMatch from '../schemas/AnimeMatch.js';
 import AnimeInfo from '../schemas/AnimeInfo.js';
+import puppeteer from 'puppeteer';
 
 dotenv.config();
 
@@ -113,9 +114,10 @@ router.get('/search/:animeName', async (req, res) => {
             const name = animeElement.find('a').attr('title').trim();
             // name has (dub in it) so we can use this to determine if it is subbed or dubbed
             const is_dub = name.includes('(Dub)') ? 'Dub' : 'Sub';
+            const image = animeElement.find('img').attr('src');
             const url = animeElement.find('a').attr('href');
 
-            let animeMatch = { ...AnimeMatch, name, lang: `${is_dub}`, url: `${baseUrl}${url}` };
+            let animeMatch = { ...AnimeMatch, name, lang: `${is_dub}`, image, url: `${baseUrl}${url}` };
             animeMatches.push(animeMatch);
         });
 
@@ -202,6 +204,7 @@ router.get('/info/:animeName', async (req, res) => {
         let animeInfo = { ...AnimeInfo }; // Initialize with default schema structure
 
         const title = $('.anime_info_body_bg h1').text().trim() || 'Unknown Title';
+        const image = $('.anime_info_body_bg img').attr('src') || 'No Image Available';
         const description = $('.description').text().trim() || 'No description available.';
         const status = $('span:contains("Status:")').parent().find('a').text().trim() || 'Unknown Status';
 
@@ -221,6 +224,7 @@ router.get('/info/:animeName', async (req, res) => {
         animeInfo = { 
             ...animeInfo,
             title, 
+            image,
             description, 
             status, 
             genres: cleanGenres, 
@@ -232,6 +236,97 @@ router.get('/info/:animeName', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to retrieve anime info' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/episodes/{animeName}:
+ *   get:
+ *     summary: Retrieves the list of episodes for a specific anime.
+ *     parameters:
+ *       - in: path
+ *         name: animeName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name of the anime.
+ *     responses:
+ *       200:
+ *         description: A list of episodes for the specified anime, This endpoint is really slow i wouldn't use it.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   episodeNumber:
+ *                     type: string
+ *                     description: The episode number.
+ *                   episodeTitle:
+ *                     type: string
+ *                     description: The title of the episode.
+ *                   episodeUrl:
+ *                     type: string
+ *                     description: The URL to watch the episode.
+ *       404:
+ *         description: No episodes found.
+ *       500:
+ *         description: Failed to retrieve episodes.
+ */
+router.get('/episodes/:animeName', async (req, res) => {
+    // slow as hell don't use
+    const animeName = req.params.animeName.replace(/\s+/g, '-').toLowerCase();
+
+    try {
+        const browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'] // Reduce security overhead
+        });
+        const page = await browser.newPage();
+
+        // Block unnecessary resources to speed up loading
+        await page.setRequestInterception(true);
+        page.on('request', (request) => {
+            if (['image', 'stylesheet', 'font', 'media'].includes(request.resourceType())) {
+                request.abort();
+            } else {
+                request.continue();
+            }
+        });
+
+        // Navigate to the anime page and wait for the essential content to load
+        await page.goto(`${baseUrl}/category/${animeName}`, { waitUntil: 'domcontentloaded' });
+
+        // Wait for the element that contains episodes
+        await page.waitForSelector('#load_ep #episode_related li a', { timeout: 5000 }); // Adjust timeout as needed
+
+        // Extract the HTML content
+        const content = await page.content();
+        await browser.close();
+
+        // Load the content into Cheerio for parsing
+        const $ = load(content);
+
+        const episodes = [];
+        $('#load_ep #episode_related li a').each((index, element) => {
+            const episodeElement = $(element);
+            const episodeNumber = episodeElement.find('.name span').text().replace('EP', '').trim();
+            const episodeTitle = episodeElement.find('.name').text().trim();
+            const episodeUrl = `${baseUrl}${episodeElement.attr('href').trim()}`;
+
+            episodes.push({ episodeNumber, episodeTitle, episodeUrl });
+        });
+
+        if (episodes.length === 0) {
+            res.status(404).json({ error: 'No episodes found' });
+        } else {
+            res.json(episodes);
+        }
+    } catch (error) {
+        console.error('Error retrieving episodes:', error);
+        res.status(500).json({ error: 'Failed to retrieve episodes' });
     }
 });
 
@@ -264,9 +359,9 @@ router.get('/latest', (req, res) => {
             const name = animeElement.find('a').attr('title').trim();
             const image = animeElement.find('img').attr('src');
             const url = animeElement.find('a').attr('href');
-            const is_dub = name.includes('(Dub)') ? 'Dub' : 'Sub';
+            const lang = name.includes('(Dub)') ? 'Dub' : 'Sub';
 
-            let animeMatch = { ...AnimeMatch, name, lang: `${is_dub}`, url: `${baseUrl}${url}` };
+            let animeMatch = { ...AnimeMatch, name, lang, image, url: `${baseUrl}${url}` };
             latestEpisodes.push(animeMatch);
         });
 

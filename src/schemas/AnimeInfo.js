@@ -5,6 +5,7 @@
  */
 const AnimeInfo = {
     title: '',
+    image: '',
     description: '',
     status: '',
     genres: [],

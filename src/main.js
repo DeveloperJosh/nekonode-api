@@ -28,14 +28,18 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: function (origin, callback) {
-        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        // Check if the origin is in the allowedOrigins array
+        if (allowedOrigins.includes(origin) || !origin) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
         }
-    }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow specific headers
 };
 
+// Enable CORS with the defined options
 app.use(cors(corsOptions));
 
 const logger = pino({
@@ -67,6 +71,7 @@ app.use(rateLimit);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Define a route to render the index page
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to NekoNode API', docs: 'https://api.nekonode.net/docs' });
 });
@@ -96,7 +101,7 @@ const specs = swaggerJsdoc(options);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 app.listen(port, () => {
-    console.log(`Server running on ${host}`);
+    console.log(`Server running on ${host}:${port}`);
 });
 
 process.on('SIGINT', () => {
