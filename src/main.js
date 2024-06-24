@@ -53,6 +53,7 @@ app.use(rateLimit);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(pinoHttp({ logger }));
 
 // Define a route to render the index page
 app.get('/', (req, res) => {
