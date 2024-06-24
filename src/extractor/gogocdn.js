@@ -3,7 +3,7 @@ import { load } from 'cheerio';
 import CryptoJS from 'crypto-js';
 import dotenv from 'dotenv';
 import { getCache, setCache } from '../utils/cache.js';
-import VideoExtractor from './uitls/VideoExtractor.js'; 
+import VideoExtractor from '../utils/VideoExtractor.js'; 
 
 dotenv.config();
 
