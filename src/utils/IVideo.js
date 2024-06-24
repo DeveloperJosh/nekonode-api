@@ -1,3 +1,4 @@
+// Definition of the IVideo interface
 /**
  * @typedef {Object} IVideo
  * @property {string} url - The **MAIN URL** of the video provider that should take you to the video
