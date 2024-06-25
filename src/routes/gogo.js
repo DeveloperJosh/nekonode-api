@@ -282,4 +282,103 @@ router.get('/latest', (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /api/episodes/{animeName}:
+ *   get:
+ *     summary: Retrieves a detailed list of episodes for a specific anime.
+ *     parameters:
+ *       - in: path
+ *         name: animeName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The identifier for the anime, used to fetch detailed episodes list.
+ *     responses:
+ *       200:
+ *         description: A detailed list of episodes including number, title, and URL.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   episodeNumber:
+ *                     type: integer
+ *                     description: The episode number.
+ *                     example: 1
+ *                   title:
+ *                     type: string
+ *                     description: The title of the episode.
+ *                     example: "Adventure on the High Seas"
+ *                   url:
+ *                     type: string
+ *                     description: URL to watch the episode.
+ *                     example: "https://gogoanime3.co/adventure-high-seas-episode-1"
+ *       404:
+ *         description: No episodes found or movie ID not available.
+ *       500:
+ *         description: Server error or failed to retrieve data from the external API.
+ */
+router.get('/episodes/:animeName', async (req, res) => {
+    const animeName = req.params.animeName;
+    const encodedAnimeName = encodeURIComponent(animeName);
+    const url = `${baseUrl}/category/${encodedAnimeName}`;
+    console.log(url);
+    try {
+        const response = await axios.get(url);
+        const $ = load(response.data);
+
+        // Extract the movie ID
+        const movieId = $('input#movie_id').val();
+        if (!movieId) {
+            console.error('Movie ID not found.');
+            return res.status(404).json({ error: 'Movie ID not found' });
+        }
+
+        // Fetch the episode list from the Gogoanime API
+        const apiUrl = "https://ajax.gogocdn.net/ajax/load-list-episode";
+        const params = {
+            ep_start: 0,
+            ep_end: 9999,
+            id: movieId,
+        };
+        const apiResponse = await axios.get(apiUrl, { params });
+
+        // Check if API response is valid
+        if (!apiResponse.data) {
+            console.log('No episodes found.');
+            return res.status(404).json({ error: 'No episodes found' });
+        }
+
+        // Load the HTML from the API response
+        const $api = load(apiResponse.data);
+
+        // Extract episodes from the API response
+        const episodes = [];
+        $api('li').each((i, element) => {
+            const episodeUrl = $api(element).find('a').attr('href');
+            const episodeTitle = $api(element).find('.name').text().trim();
+            const episodeNumberMatch = episodeTitle.match(/Episode (\d+)/);
+            const episodeNumber = episodeNumberMatch ? parseInt(episodeNumberMatch[1], 10) : i + 1;
+
+            if (episodeUrl && episodeTitle) {
+                episodes.push({
+                    episodeNumber: episodeNumber,
+                    title: episodeTitle,
+                    url: `https://gogoanime3.co${episodeUrl.trim()}`,
+                });
+            }
+        });
+
+        episodes.reverse();
+
+        // Return the episodes
+        res.json(episodes);
+    } catch (error) {
+        console.error('Failed to retrieve anime:', error);
+        res.status(500).json({ error: 'Failed to retrieve anime' });
+    }
+});
 export default router;
