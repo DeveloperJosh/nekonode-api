@@ -363,6 +363,9 @@ router.get('/episodes/:animeName', async (req, res) => {
             const episodeNumberMatch = episodeTitle.match(/Episode (\d+)/);
             const episodeNumber = episodeNumberMatch ? parseInt(episodeNumberMatch[1], 10) : i + 1;
 
+            episodeNumberMatch ? parseInt(episodeNumberMatch[1], 10) : i + 1;
+
+
             if (episodeUrl && episodeTitle) {
                 episodes.push({
                     episodeNumber: episodeNumber,
@@ -372,9 +375,15 @@ router.get('/episodes/:animeName', async (req, res) => {
             }
         });
 
-        episodes.reverse();
+        episodes.forEach(episode => {
+            const match = episode.title.match(/\bEP (\d+)\b/);
+            if (match) {
+              episode.episodeNumber = parseInt(match[1], 10);
+            }
+          });
+    
+          episodes.reverse();
 
-        // Return the episodes
         res.json(episodes);
     } catch (error) {
         console.error('Failed to retrieve anime:', error);
