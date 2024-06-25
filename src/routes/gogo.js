@@ -199,9 +199,12 @@ router.get('/watch/:episode', async (req, res) => {
 router.get('/info/:animeName', async (req, res) => {
     let anime = req.params.animeName;
     anime = anime.replace(/\s+/g, '-').toLowerCase();
+    anime = anime.replace(/:/g, '');
+
+    const encodedAnime = encodeURIComponent(anime);
 
     try {
-        const animeResponse = await axios.get(`${baseUrl}/category/${anime}`);
+        const animeResponse = await axios.get(`${baseUrl}/category/${encodedAnime}`);
         const $ = load(animeResponse.data);
         let animeInfo = { ...AnimeInfo }; // Initialize with default schema structure
 
