@@ -123,7 +123,9 @@ router.get('/search/:animeName', async (req, res) => {
             const is_dub = name.includes('(Dub)') ? 'Dub' : 'Sub';
             const image = animeElement.find('img').attr('src');
             const url = animeElement.find('a').attr('href');
-            const encodedName = encodeURIComponent(name.replace(/\s+/g, '-').toLowerCase());
+            let encodedName = encodeURIComponent(name.replace(/\s+/g, '-').toLowerCase());
+            // remove any special characters from the name, like !, ?, (, ), keep - 
+            encodedName = encodedName.replace(/[^a-zA-Z0-9-]/g, '');
 
             let animeMatch = { ...AnimeMatch, name, encodedName, lang: `${is_dub}`, image, url: `${baseUrl}${url}` };
             animeMatches.push(animeMatch);
@@ -281,7 +283,9 @@ router.get('/latest', (req, res) => {
             const url = animeElement.find('a').attr('href');
             const lang = name.includes('(Dub)') ? 'Dub' : 'Sub';
             // make name lowercase and replace spaces with dashes
-            const encodedName = encodeURIComponent(name.replace(/\s+/g, '-').toLowerCase());
+            let encodedName = encodeURIComponent(name.replace(/\s+/g, '-').toLowerCase());
+            // remove any special characters from the name, like !, ?, (, ), keep - 
+            encodedName = encodedName.replace(/[^a-zA-Z0-9-]/g, '');
             
             let animeMatch = { ...AnimeMatch, name, encodedName, lang, image, url: `${baseUrl}${url}` };
             latestEpisodes.push(animeMatch);
