@@ -13,6 +13,7 @@ dotenv.config();
 
 const router = Router();
 const baseUrl = process.env.BASE_URL;
+const list = [];
 const gogoCDN = new GogoCDN();
 
 /**
@@ -393,4 +394,159 @@ router.get('/episodes/:animeName', async (req, res) => {
         res.status(500).json({ error: 'Failed to retrieve anime' });
     }
 });
+/**
+ * @swagger
+ * /api/anime/{animeName}:
+ *   get:
+ *     summary: Retrieves detailed information about an anime along with its episodes.
+ *     parameters:
+ *       - in: path
+ *         name: animeName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The identifier for the anime.
+ *     responses:
+ *       200:
+ *         description: The detailed information of the anime along with its episodes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 animeInfo:
+ *                   $ref: '#/components/schemas/AnimeInfo'
+ *                 episodes:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       episodeNumber:
+ *                         type: integer
+ *                         description: The episode number.
+ *                         example: 1
+ *                       title:
+ *                         type: string
+ *                         description: The title of the episode.
+ *                         example: "Adventure on the High Seas"
+ *                       url:
+ *                         type: string
+ *                         description: URL to watch the episode.
+ *                         example: "https://gogoanime3.co/adventure-high-seas-episode-1"
+ *       404:
+ *         description: No episodes found or movie ID not available.
+ *       500:
+ *         description: Server error or failed to retrieve data from the external API.
+ */
+router.get('/anime/:animeName', async (req, res) => {
+    const animeName = req.params.animeName;
+    const encodedAnimeName = encodeURIComponent(animeName);
+
+    try {
+        // Fetch the main page for the anime
+        const response = await axios.get(`${baseUrl}/category/${encodedAnimeName}`);
+        const $ = load(response.data);
+
+        // Extract the movie ID
+        const movieId = $('input#movie_id').val();
+        if (!movieId) {
+            console.error('Movie ID not found.');
+            return res.status(404).json({ error: 'Movie ID not found' });
+        }
+
+        // Fetch the episode list from the Gogoanime API
+        const apiUrl = "https://ajax.gogocdn.net/ajax/load-list-episode";
+        const params = {
+            ep_start: 0,
+            ep_end: 9999,
+            id: movieId,
+        };
+        const apiResponse = await axios.get(apiUrl, { params });
+
+        // Check if API response is valid
+        if (!apiResponse.data) {
+            console.log('No episodes found.');
+            return res.status(404).json({ error: 'No episodes found' });
+        }
+
+        // Load the HTML from the API response
+        const $api = load(apiResponse.data);
+
+        // Extract episodes from the API response
+        const episodes = [];
+        $api('li').each((i, element) => {
+            const episodeUrl = $api(element).find('a').attr('href');
+            const episodeTitle = $api(element).find('.name').text().trim();
+            const episodeNumberMatch = episodeTitle.match(/Episode (\d+)/);
+            const episodeNumber = episodeNumberMatch ? parseInt(episodeNumberMatch[1], 10) : i + 1;
+
+            if (episodeUrl && episodeTitle) {
+                episodes.push({
+                    episodeNumber: episodeNumber,
+                    title: episodeTitle,
+                    url: `https://gogoanime3.co${episodeUrl.trim()}`,
+                });
+            }
+        });
+
+        episodes.forEach(episode => {
+            const match = episode.title.match(/\bEP (\d+)\b/);
+            if (match) {
+              episode.episodeNumber = parseInt(match[1], 10);
+            }
+        });
+
+        episodes.reverse();
+
+        // Extract anime information
+        let anime = req.params.animeName;
+        anime = anime.replace(/\s+/g, '-').toLowerCase();
+        anime = anime.replace(/:/g, '');
+        const encodedAnime = encodeURIComponent(anime);
+
+        const animeResponse = await axios.get(`${baseUrl}/category/${encodedAnime}`);
+        const animePage = load(animeResponse.data);
+        let animeInfo = { ...AnimeInfo }; // Initialize with default schema structure
+
+        const title = animePage('.anime_info_body_bg h1').text().trim() || 'Unknown Title';
+        const image = animePage('.anime_info_body_bg img').attr('src') || 'No Image Available';
+        const description = animePage('.description').text().trim() || 'No description available.';
+        const status = animePage('span:contains("Status:")').parent().find('a').text().trim() || 'Unknown Status';
+
+        const genres = [];
+        animePage('span:contains("Genre:")').parent().find('a').each((_, element) => {
+            const genre = $(element).text().replace(/^,/, '').trim();
+            genres.push(genre);
+        });
+
+        const cleanGenres = genres.filter(genre => genre);
+
+        const released = animePage('span:contains("Released:")').parent().text().replace('Released:', '').trim() || 'Unknown Release Date';
+
+        const epEndAttribute = animePage('#episode_page a').last().attr('ep_end');
+        const totalEpisodes = epEndAttribute ? parseInt(epEndAttribute, 10) : 'Not Available';
+
+        animeInfo = { 
+            ...animeInfo,
+            title, 
+            image,
+            description, 
+            status, 
+            genres: cleanGenres, 
+            released, 
+            totalEpisodes 
+        };
+
+        // Respond with combined data
+        res.json({
+            animeInfo,
+            episodes
+        });
+    } catch (error) {
+        console.error('Failed to retrieve anime:', error);
+        res.status(500).json({ error: 'Failed to retrieve anime' });
+    }
+});
+
+
 export default router;
