@@ -124,19 +124,18 @@ router.get('/search/:animeName', async (req, res) => {
             let encodedName = name.replace(/\s+/g, '-').toLowerCase();
             encodedName = encodedName.replace(/[^a-zA-Z0-9-]/g, '');
 
-            let animeMatch = { name, encodedName, lang: `${is_dub}`, image, url: `${baseUrl}${url}` };
+            let animeMatch = { name, encodedName, lang: is_dub, image, url: `${baseUrl}${url}` };
             animeMatches.push(animeMatch);
         });
 
-        const nextPage = $('div.anime_name_pagination.intro a[data-page]').last().attr('href');
-        const hasNextPage = nextPage && nextPage !== `?page=${page}`;
+        // Extract the next page link
+        const nextPageLink = $('ul.pagination-list li a:contains("Next")').attr('href');
 
         if (animeMatches.length === 0) {
             res.status(404).json({ error: 'No results found' });
         } else {
             res.json({
                 animeMatches,
-                nextPage: hasNextPage ? parseInt(page) + 1 : null
             });
         }
     } catch (error) {
