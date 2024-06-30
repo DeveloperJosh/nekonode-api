@@ -123,8 +123,9 @@ router.get('/search/:animeName', async (req, res) => {
             const is_dub = name.includes('(Dub)') ? 'Dub' : 'Sub';
             const image = animeElement.find('img').attr('src');
             const url = animeElement.find('a').attr('href');
+            const encodedName = encodeURIComponent(name.replace(/\s+/g, '-').toLowerCase());
 
-            let animeMatch = { ...AnimeMatch, name, lang: `${is_dub}`, image, url: `${baseUrl}${url}` };
+            let animeMatch = { ...AnimeMatch, name, encodedName, lang: `${is_dub}`, image, url: `${baseUrl}${url}` };
             animeMatches.push(animeMatch);
         });
 
