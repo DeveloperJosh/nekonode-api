@@ -108,36 +108,42 @@ const gogoCDN = new GogoCDN();
 router.get('/search/:animeName', async (req, res) => {
     const animeName = req.params.animeName;
     const encodedAnimeName = encodeURIComponent(animeName);
+    const page = req.query.page || 1; // Default to page 1 if no page is specified
 
     try {
-        const searchResponse = await axios.get(`${baseUrl}/search.html?keyword=${encodedAnimeName}`);
+        const searchResponse = await axios.get(`${baseUrl}/search.html?keyword=${encodedAnimeName}&page=${page}`);
         const $ = load(searchResponse.data);
         let animeMatches = [];
 
         $('.items .img').each((_, element) => {
             const animeElement = $(element);
             const name = animeElement.find('a').attr('title').trim();
-            // name has (dub in it) so we can use this to determine if it is subbed or dubbed
             const is_dub = name.includes('(Dub)') ? 'Dub' : 'Sub';
             const image = animeElement.find('img').attr('src');
             const url = animeElement.find('a').attr('href');
             let encodedName = name.replace(/\s+/g, '-').toLowerCase();
-            // remove any special characters from the name, like !, ?, (, ), ;, keep - 
             encodedName = encodedName.replace(/[^a-zA-Z0-9-]/g, '');
 
-            let animeMatch = { ...AnimeMatch, name, encodedName, lang: `${is_dub}`, image, url: `${baseUrl}${url}` };
+            let animeMatch = { name, encodedName, lang: `${is_dub}`, image, url: `${baseUrl}${url}` };
             animeMatches.push(animeMatch);
         });
+
+        const nextPage = $('div.anime_name_pagination.intro a[data-page]').last().attr('href');
+        const hasNextPage = nextPage && nextPage !== `?page=${page}`;
 
         if (animeMatches.length === 0) {
             res.status(404).json({ error: 'No results found' });
         } else {
-            res.json(animeMatches);
+            res.json({
+                animeMatches,
+                nextPage: hasNextPage ? parseInt(page) + 1 : null
+            });
         }
     } catch (error) {
         res.status(500).json({ error: 'Failed to retrieve anime' });
     }
 });
+
 /**
  * @swagger
  * /api/watch/{episode}:
