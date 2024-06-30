@@ -27,6 +27,10 @@ const gogoCDN = new GogoCDN();
  *           type: string
  *           description: The name of the anime.
  *           example: "Naruto"
+ *         encodedName:
+ *          type: string
+ *          description: The name of the anime encoded.
+ *          example: "the-irregular-at-magic-high-school"
  *         lang:
  *          type: string
  *          description: The language of the anime.
@@ -271,12 +275,14 @@ router.get('/latest', (req, res) => {
 
         $('.items .img').each((_, element) => {
             const animeElement = $(element);
-            const name = animeElement.find('a').attr('title').trim();
+            let name = animeElement.find('a').attr('title').trim();
             const image = animeElement.find('img').attr('src');
             const url = animeElement.find('a').attr('href');
             const lang = name.includes('(Dub)') ? 'Dub' : 'Sub';
-
-            let animeMatch = { ...AnimeMatch, name, lang, image, url: `${baseUrl}${url}` };
+            // make name lowercase and replace spaces with dashes
+            const encodedName = encodeURIComponent(name.replace(/\s+/g, '-').toLowerCase());
+            
+            let animeMatch = { ...AnimeMatch, name, encodedName, lang, image, url: `${baseUrl}${url}` };
             latestEpisodes.push(animeMatch);
         });
 
