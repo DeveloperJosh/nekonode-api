@@ -23,7 +23,7 @@ const __dirname = dirname(__filename);
 const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:4000',
-    'https://nekonode-site.sziwyz.easypanel.host/',
+    'https://nekonode-site.sziwyz.easypanel.host',
     `https://api.nekonode.net`,
     `https://nekonode.net`
 ];
