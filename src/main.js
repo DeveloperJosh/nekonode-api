@@ -22,8 +22,9 @@ const __dirname = dirname(__filename);
 
 const allowedOrigins = [
     'http://localhost:3000',
-    `https://${host}`,
+    'http://localhost:4000',
     `https://api.nekonode.net`,
+    `https://nekonode.net`
 ];
 
 const corsOptions = {

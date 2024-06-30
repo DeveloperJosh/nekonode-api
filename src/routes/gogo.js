@@ -7,8 +7,6 @@ import GogoCDN from '../extractor/gogocdn.js';
 import EpisodeSources from '../schemas/EpisodeSources.js';
 import AnimeMatch from '../schemas/AnimeMatch.js';
 import AnimeInfo from '../schemas/AnimeInfo.js';
-import puppeteer from 'puppeteer';
-
 dotenv.config();
 
 const router = Router();
@@ -269,142 +267,51 @@ router.get('/info/:animeName', async (req, res) => {
  * 500:
  * description: Failed to retrieve latest episodes.
  */
-router.get('/latest', (req, res) => {
-    // get last_episodes loaddub
-
-    axios.get(`${baseUrl}/`).then((response) => {
-        const $ = load(response.data);
-        let latestEpisodes = [];
-
-        $('.items .img').each((_, element) => {
-            const animeElement = $(element);
-            let name = animeElement.find('a').attr('title').trim();
-            const image = animeElement.find('img').attr('src');
-            const url = animeElement.find('a').attr('href');
-            const lang = name.includes('(Dub)') ? 'Dub' : 'Sub';
-            // make name lowercase and replace spaces with dashes
-            let encodedName = encodeURIComponent(name.replace(/\s+/g, '-').toLowerCase());
-            // remove any special characters from the name, like !, ?, (, ), keep - 
-            encodedName = encodedName.replace(/[^a-zA-Z0-9-]/g, '');
-            
-            let animeMatch = { ...AnimeMatch, name, encodedName, lang, image, url: `${baseUrl}${url}` };
-            latestEpisodes.push(animeMatch);
-        });
-
-        res.json(latestEpisodes);
-    }).catch((error) => {
-        res.status(500).json({ error: 'Failed to retrieve latest episodes' });
-    });
-});
-
-/**
- * @swagger
- * /api/episodes/{animeName}:
- *   get:
- *     summary: Retrieves a detailed list of episodes for a specific anime.
- *     parameters:
- *       - in: path
- *         name: animeName
- *         required: true
- *         schema:
- *           type: string
- *         description: The identifier for the anime, used to fetch detailed episodes list.
- *     responses:
- *       200:
- *         description: A detailed list of episodes including number, title, and URL.
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   episodeNumber:
- *                     type: integer
- *                     description: The episode number.
- *                     example: 1
- *                   title:
- *                     type: string
- *                     description: The title of the episode.
- *                     example: "Adventure on the High Seas"
- *                   url:
- *                     type: string
- *                     description: URL to watch the episode.
- *                     example: "https://gogoanime3.co/adventure-high-seas-episode-1"
- *       404:
- *         description: No episodes found or movie ID not available.
- *       500:
- *         description: Server error or failed to retrieve data from the external API.
- */
-router.get('/episodes/:animeName', async (req, res) => {
-    const animeName = req.params.animeName;
-    const encodedAnimeName = encodeURIComponent(animeName);
-    const url = `${baseUrl}/category/${encodedAnimeName}`;
-    console.log(url);
+router.get('/latest', async (req, res) => {
     try {
-        const response = await axios.get(url);
-        const $ = load(response.data);
+        const page = req.query.page || 1; // Default to page 1 if no page is specified
+        const includeNextPage = req.query.next === 'true'; // Check if next page is requested
 
-        // Extract the movie ID
-        const movieId = $('input#movie_id').val();
-        if (!movieId) {
-            console.error('Movie ID not found.');
-            return res.status(404).json({ error: 'Movie ID not found' });
-        }
+        const fetchEpisodes = async (url) => {
+            const response = await axios.get(url);
+            const $ = load(response.data);
+            let episodes = [];
 
-        // Fetch the episode list from the Gogoanime API
-        const apiUrl = "https://ajax.gogocdn.net/ajax/load-list-episode";
-        const params = {
-            ep_start: 0,
-            ep_end: 9999,
-            id: movieId,
+            $('.items .img').each((_, element) => {
+                const animeElement = $(element);
+                let name = animeElement.find('a').attr('title').trim();
+                const image = animeElement.find('img').attr('src');
+                const url = animeElement.find('a').attr('href');
+                const lang = name.includes('(Dub)') ? 'Dub' : 'Sub';
+                let encodedName = name.replace(/\s+/g, '-').toLowerCase();
+                encodedName = encodedName.replace(/[^a-zA-Z0-9-]/g, '');
+
+                let animeMatch = { name, encodedName, lang, image, url: `${baseUrl}${url}` };
+                episodes.push(animeMatch);
+            });
+
+            const nextPage = $('div.anime_name_pagination.intro a[data-page]').last().attr('href');
+            return { episodes, nextPage };
         };
-        const apiResponse = await axios.get(apiUrl, { params });
 
-        // Check if API response is valid
-        if (!apiResponse.data) {
-            console.log('No episodes found.');
-            return res.status(404).json({ error: 'No episodes found' });
+        const { episodes: latestEpisodes, nextPage } = await fetchEpisodes(`${baseUrl}/?page=${page}`);
+        
+        let allEpisodes = [...latestEpisodes];
+        if (includeNextPage && nextPage && nextPage !== `?page=${page}`) {
+            const nextPageNumber = nextPage.match(/\?page=(\d+)/)[1];
+            if (nextPageNumber > page) {
+                const { episodes: nextPageEpisodes } = await fetchEpisodes(`${baseUrl}${nextPage}`);
+                allEpisodes = [...allEpisodes, ...nextPageEpisodes];
+            }
         }
 
-        // Load the HTML from the API response
-        const $api = load(apiResponse.data);
-
-        // Extract episodes from the API response
-        const episodes = [];
-        $api('li').each((i, element) => {
-            const episodeUrl = $api(element).find('a').attr('href');
-            const episodeTitle = $api(element).find('.name').text().trim();
-            const episodeNumberMatch = episodeTitle.match(/Episode (\d+)/);
-            const episodeNumber = episodeNumberMatch ? parseInt(episodeNumberMatch[1], 10) : i + 1;
-
-            episodeNumberMatch ? parseInt(episodeNumberMatch[1], 10) : i + 1;
-
-
-            if (episodeUrl && episodeTitle) {
-                episodes.push({
-                    episodeNumber: episodeNumber,
-                    title: episodeTitle,
-                    url: `https://gogoanime3.co${episodeUrl.trim()}`,
-                });
-            }
-        });
-
-        episodes.forEach(episode => {
-            const match = episode.title.match(/\bEP (\d+)\b/);
-            if (match) {
-              episode.episodeNumber = parseInt(match[1], 10);
-            }
-          });
-    
-          episodes.reverse();
-
-        res.json(episodes);
+        res.json(allEpisodes);
     } catch (error) {
-        console.error('Failed to retrieve anime:', error);
-        res.status(500).json({ error: 'Failed to retrieve anime' });
+        console.error('Error fetching episodes:', error); // Debugging log
+        res.status(500).json({ error: 'Failed to retrieve latest episodes' });
     }
 });
+
 /**
  * @swagger
  * /api/anime/{animeName}:
@@ -450,9 +357,8 @@ router.get('/episodes/:animeName', async (req, res) => {
  *         description: Server error or failed to retrieve data from the external API.
  */
 router.get('/anime/:animeName', async (req, res) => {
-    const animeName = req.params.animeName;
-    const encodedAnimeName = encodeURIComponent(animeName);
-
+    let animeName = req.params.animeName;
+    let encodedAnimeName = encodeURIComponent(animeName);
     try {
         // Fetch the main page for the anime
         const response = await axios.get(`${baseUrl}/category/${encodedAnimeName}`);
