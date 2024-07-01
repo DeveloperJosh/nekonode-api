@@ -2,7 +2,6 @@ import { Router } from 'express';
 import axios from 'axios';
 import { load } from 'cheerio';
 import dotenv from 'dotenv';
-///import getEpisodeSources from '../extractor/gogocdn.js';
 import GogoCDN from '../extractor/gogocdn.js';
 import EpisodeSources from '../schemas/EpisodeSources.js';
 import AnimeMatch from '../schemas/AnimeMatch.js';
@@ -26,24 +25,28 @@ const gogoCDN = new GogoCDN();
  *           description: The name of the anime.
  *           example: "Naruto"
  *         encodedName:
- *          type: string
- *          description: The name of the anime encoded.
- *          example: "the-irregular-at-magic-high-school"
+ *           type: string
+ *           description: The name of the anime encoded.
+ *           example: "the-irregular-at-magic-high-school"
  *         lang:
- *          type: string
- *          description: The language of the anime.
- *          example: "Sub"
+ *           type: string
+ *           description: The language of the anime.
+ *           example: "Sub"
  *         url:
  *           type: string
  *           description: The URL of the anime.
  *           example: "https://example.com/anime/naruto"
+ *         image:
+ *           type: string
+ *           description: The URL of the anime's image.
+ *           example: "https://example.com/image.jpg"
  *     EpisodeSources:
  *       type: object
  *       properties:
  *         source:
  *           type: string
  *           description: The source URL of the episode.
- *           example: "https://example.com/source.m8u3"
+ *           example: "https://example.com/source.m3u8"
  *         quality:
  *           type: string
  *           description: The quality of the source (e.g., 720p, 1080p).
@@ -101,14 +104,14 @@ const gogoCDN = new GogoCDN();
  *               items:
  *                 $ref: '#/components/schemas/AnimeMatch'
  *       404:
- *         description: No results found. (You should know some anime names are in japanese)
+ *         description: No results found. (You should know some anime names are in Japanese)
  *       500:
  *         description: Failed to retrieve anime.
  */
 router.get('/search/:animeName', async (req, res) => {
     const animeName = req.params.animeName;
     const encodedAnimeName = encodeURIComponent(animeName);
-    const page = req.query.page || 1; // Default to page 1 if no page is specified
+    const page = req.query.page || 1;
 
     try {
         const searchResponse = await axios.get(`${baseUrl}/search.html?keyword=${encodedAnimeName}&page=${page}`);
@@ -123,20 +126,16 @@ router.get('/search/:animeName', async (req, res) => {
             const url = animeElement.find('a').attr('href');
             let encodedName = name.replace(/\s+/g, '-').toLowerCase();
             encodedName = encodedName.replace(/[^a-zA-Z0-9-]/g, '');
+            encodedName = encodedName.replace(/-+/g, '-');
 
             let animeMatch = { name, encodedName, lang: is_dub, image, url: `${baseUrl}${url}` };
             animeMatches.push(animeMatch);
         });
 
-        // Extract the next page link
-        const nextPageLink = $('ul.pagination-list li a:contains("Next")').attr('href');
-
         if (animeMatches.length === 0) {
             res.status(404).json({ error: 'No results found' });
         } else {
-            res.json({
-                animeMatches,
-            });
+            res.json({ animeMatches });
         }
     } catch (error) {
         res.status(500).json({ error: 'Failed to retrieve anime' });
@@ -217,7 +216,7 @@ router.get('/info/:animeName', async (req, res) => {
     try {
         const animeResponse = await axios.get(`${baseUrl}/category/${encodedAnime}`);
         const $ = load(animeResponse.data);
-        let animeInfo = { ...AnimeInfo }; // Initialize with default schema structure
+        let animeInfo = { ...AnimeInfo };
 
         const title = $('.anime_info_body_bg h1').text().trim() || 'Unknown Title';
         const image = $('.anime_info_body_bg img').attr('src') || 'No Image Available';
@@ -258,24 +257,24 @@ router.get('/info/:animeName', async (req, res) => {
 /**
  * @swagger
  * /api/latest:
- *  get:
- *   summary: Retrieves the latest episodes.
- *  responses:
- *   200:
- *   description: The latest episodes.
- *  content:
- *  application/json:
- *  schema:
- *  type: array
- * items:
- * $ref: '#/components/schemas/AnimeMatch'
- * 500:
- * description: Failed to retrieve latest episodes.
+ *   get:
+ *     summary: Retrieves the latest episodes.
+ *     responses:
+ *       200:
+ *         description: The latest episodes.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/AnimeMatch'
+ *       500:
+ *         description: Failed to retrieve latest episodes.
  */
 router.get('/latest', async (req, res) => {
     try {
-        const page = req.query.page || 1; // Default to page 1 if no page is specified
-        const includeNextPage = req.query.next === 'true'; // Check if next page is requested
+        const page = req.query.page || 1;
+        const includeNextPage = req.query.next === 'true';
 
         const fetchEpisodes = async (url) => {
             const response = await axios.get(url);
@@ -312,7 +311,7 @@ router.get('/latest', async (req, res) => {
 
         res.json(allEpisodes);
     } catch (error) {
-        console.error('Error fetching episodes:', error); // Debugging log
+        console.error('Error fetching episodes:', error);
         res.status(500).json({ error: 'Failed to retrieve latest episodes' });
     }
 });
@@ -365,18 +364,15 @@ router.get('/anime/:animeName', async (req, res) => {
     let animeName = req.params.animeName;
     let encodedAnimeName = encodeURIComponent(animeName);
     try {
-        // Fetch the main page for the anime
         const response = await axios.get(`${baseUrl}/category/${encodedAnimeName}`);
         const $ = load(response.data);
 
-        // Extract the movie ID
         const movieId = $('input#movie_id').val();
         if (!movieId) {
             console.error('Movie ID not found.');
             return res.status(404).json({ error: 'Movie ID not found' });
         }
 
-        // Fetch the episode list from the Gogoanime API
         const apiUrl = "https://ajax.gogocdn.net/ajax/load-list-episode";
         const params = {
             ep_start: 0,
@@ -385,16 +381,13 @@ router.get('/anime/:animeName', async (req, res) => {
         };
         const apiResponse = await axios.get(apiUrl, { params });
 
-        // Check if API response is valid
         if (!apiResponse.data) {
             console.log('No episodes found.');
             return res.status(404).json({ error: 'No episodes found' });
         }
 
-        // Load the HTML from the API response
         const $api = load(apiResponse.data);
 
-        // Extract episodes from the API response
         const episodes = [];
         $api('li').each((i, element) => {
             const episodeUrl = $api(element).find('a').attr('href');
@@ -414,13 +407,12 @@ router.get('/anime/:animeName', async (req, res) => {
         episodes.forEach(episode => {
             const match = episode.title.match(/\bEP (\d+)\b/);
             if (match) {
-              episode.episodeNumber = parseInt(match[1], 10);
+                episode.episodeNumber = parseInt(match[1], 10);
             }
         });
 
         episodes.reverse();
 
-        // Extract anime information
         let anime = req.params.animeName;
         anime = anime.replace(/\s+/g, '-').toLowerCase();
         anime = anime.replace(/:/g, '');
@@ -428,7 +420,7 @@ router.get('/anime/:animeName', async (req, res) => {
 
         const animeResponse = await axios.get(`${baseUrl}/category/${encodedAnime}`);
         const animePage = load(animeResponse.data);
-        let animeInfo = { ...AnimeInfo }; // Initialize with default schema structure
+        let animeInfo = { ...AnimeInfo };
 
         const title = animePage('.anime_info_body_bg h1').text().trim() || 'Unknown Title';
         const image = animePage('.anime_info_body_bg img').attr('src') || 'No Image Available';
@@ -459,16 +451,11 @@ router.get('/anime/:animeName', async (req, res) => {
             totalEpisodes 
         };
 
-        // Respond with combined data
-        res.json({
-            animeInfo,
-            episodes
-        });
+        res.json({ animeInfo, episodes });
     } catch (error) {
         console.error('Failed to retrieve anime:', error);
         res.status(500).json({ error: 'Failed to retrieve anime' });
     }
 });
-
 
 export default router;
