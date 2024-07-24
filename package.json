@@ -33,7 +33,7 @@
     "pino": "^9.2.0",
     "pino-http": "^10.1.0",
     "puppeteer": "^22.12.1",
-    "redis": "^4.6.14",
+    "redis": "^4.6.15",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
