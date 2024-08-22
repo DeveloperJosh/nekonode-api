@@ -33,7 +33,7 @@
     "node-cache": "^5.1.2",
     "pino": "^9.3.2",
     "pino-http": "^10.1.0",
-    "puppeteer": "^22.14.0",
+    "puppeteer": "^22.15.0",
     "redis": "^4.7.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
