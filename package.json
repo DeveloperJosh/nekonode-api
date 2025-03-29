@@ -20,7 +20,7 @@
   "dependencies": {
     "@babel/preset-env": "^7.25.4",
     "@babel/register": "^7.24.6",
-    "axios": "^1.7.4",
+    "axios": "^1.8.3",
     "chai-http": "^5.0.0",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
@@ -33,7 +33,7 @@
     "node-cache": "^5.1.2",
     "pino": "^9.3.2",
     "pino-http": "^10.1.0",
-    "puppeteer": "^22.15.0",
+    "puppeteer": "^24.2.0",
     "redis": "^4.7.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
