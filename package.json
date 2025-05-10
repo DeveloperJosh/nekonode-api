@@ -18,7 +18,7 @@
   "author": "DeveloperJosh",
   "license": "MIT",
   "dependencies": {
-    "@babel/preset-env": "^7.25.4",
+    "@babel/preset-env": "^7.27.1",
     "@babel/register": "^7.24.6",
     "axios": "^1.7.4",
     "chai-http": "^5.0.0",
