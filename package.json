@@ -21,7 +21,7 @@
     "@babel/preset-env": "^7.25.4",
     "@babel/register": "^7.24.6",
     "axios": "^1.7.4",
-    "chai-http": "^5.0.0",
+    "chai-http": "^5.1.2",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
